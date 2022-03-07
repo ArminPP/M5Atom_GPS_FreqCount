@@ -2,6 +2,9 @@
 
 #include <M5Atom.h>
 
+#include "soc/soc.h"
+#include "soc/rtc_cntl_reg.h"
+
 #include <BluetoothSerial.h>
 BluetoothSerial SerialBT;
 
@@ -91,6 +94,8 @@ ModbusMessage FC03(ModbusMessage request)
 
 void setup()
 {
+
+  WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0); // disable brownout detector  https://iotespresso.com/how-to-disable-brownout-detector-in-esp32-in-arduino
 
   M5.begin(true, false, true);
   M5.dis.fillpix(0x00004f);
