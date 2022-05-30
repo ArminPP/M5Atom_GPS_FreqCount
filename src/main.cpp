@@ -3,10 +3,36 @@
 #include <Arduino.h>
 #include <M5Atom.h>
 
+<<<<<<< HEAD
 #include <esp_wifi.h>
 #include <WiFi.h>
 // #include <DNSServer.h>
 #include <aWOT.h>
+=======
+#include "soc/soc.h"
+#include "soc/rtc_cntl_reg.h"
+
+#include <BluetoothSerial.h>
+BluetoothSerial SerialBT;
+
+#include <RemoteXY.h>
+// RemoteXY configurate
+#pragma pack(push, 1)
+uint8_t RemoteXY_CONF[] =
+    {255, 0, 0, 32, 0, 92, 0, 15, 26, 0,
+     71, 56, 25, 0, 53, 53, 0, 28, 24, 135,
+     0, 0, 0, 0, 0, 0, 32, 67, 0, 0,
+     160, 65, 0, 0, 32, 65, 0, 0, 0, 64,
+     64, 0, 67, 1, 29, 42, 45, 23, 2, 26,
+     6, 67, 4, 1, 1, 32, 7, 2, 26, 11,
+     67, 6, 72, 1, 27, 7, 2, 26, 11, 129,
+     0, 35, 38, 34, 3, 28, 65, 114, 109, 105,
+     110, 115, 32, 83, 112, 101, 101, 100, 111, 109,
+     101, 116, 101, 114, 32, 58, 45, 41, 0};
+// this structure defines all the variables and events of your control interface
+struct
+{
+>>>>>>> 945c5b9f56e0821c4b508b72162ca1c9be4ba4b0
 
 #include "espNowFloodingMeshLibrary2/EspNowFloodingMesh.h"
 
@@ -207,6 +233,7 @@ void setup()
   M5.begin(true, true, true);
   Serial.begin(115200);
 
+<<<<<<< HEAD
   Serial.println("\nPress some serial key or M5 Button to start program 1"); // DEBUG
   while (Serial.available() == 0)
   {
@@ -357,6 +384,40 @@ void setup()
   // dnsServer.start(53, "*", ip);
 
   Serial.println("OK"); // DEBUG
+=======
+  WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0); // disable brownout detector  https://iotespresso.com/how-to-disable-brownout-detector-in-esp32-in-arduino
+
+  M5.begin(true, false, true);
+  M5.dis.fillpix(0x00004f);
+
+  remotexy = new CRemoteXY(
+      RemoteXY_CONF_PROGMEM,
+      &RemoteXY,
+      "",
+      new CRemoteXYStream_BluetoothSerial(
+          "myRemoteXY" // REMOTEXY_BLUETOOTH_NAME
+          ));
+
+  // uint64_t chipid;
+  // char chipname[256];
+  // chipid = ESP.getEfuseMac();
+  // sprintf(chipname, "Sensor1%04X", (uint16_t)(chipid >> 32));
+  // Serial.printf("Bluetooth: %s\n", chipname);
+  // SerialBT.begin(chipname);
+
+  Serial.printf("\nModBus serverID: %3i\n\n", SERVER_ID);
+  Serial2.begin(9600, SERIAL_8N1, GPIO_NUM_22, GPIO_NUM_19); // Modbus connection
+  // Register served function code worker for server 1, FC 0x03
+  MBserver.registerWorker(SERVER_ID, READ_HOLD_REGISTER, &FC03); // ID 0x1B??
+  // Start ModbusRTU background task
+  MBserver.start();
+
+  Serial.println(" FreqCounterESP lib"); // Console print
+  FreqCountESP.begin(inputPin, timerMs);
+
+  ss.begin(9600, SERIAL_8N1, 32, 26);
+  Serial.println(" TinYGPS++ lib"); // Console print
+>>>>>>> 945c5b9f56e0821c4b508b72162ca1c9be4ba4b0
 }
 
 void loop()
