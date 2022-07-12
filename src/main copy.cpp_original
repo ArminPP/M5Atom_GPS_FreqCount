@@ -36,15 +36,13 @@ BluetoothSerial SerialBT;
 
 #include "espNowFloodingMeshLibrary2/EspNowFloodingMesh.h"
 
-
-struct Fuel_Sensor_t
+struct MeshProbe_struct
 {
-  uint32_t TelegramCounter;  // internal counter - inc from start up
-  uint16_t NoOfImpulses;     // sum of impulses are sent
-  uint16_t SumOfImpulseTime; // sum of duration of sent impulses
-  float MilliLitters;        // sum of collected ml for this message frame
+  char name[15]; // name of the mesh slave
+  uint64_t TimeStamp;
+  float MPU_Temperature;
 };
-Fuel_Sensor_t Fuel_Sensor;
+MeshProbe_struct MeshProbe;
 
 unsigned char secredKey[] = {0xB8, 0xF0, 0xF4, 0xB7, 0x4B, 0x1E, 0xD7, 0x1E, 0x8E, 0x4B, 0x7C, 0x8A, 0x09, 0xE0, 0x5A, 0xF1}; // AES 128bit
 unsigned char iv[16] = {0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF};
@@ -73,11 +71,11 @@ void espNowFloodingMeshRecv(const uint8_t *data, int len, uint32_t replyPrt)
       M5.dis.drawpix(0, 0, 0x00ff00); // green
     }
     blink = !blink;
-    Fuel_Sensor_t *Fuel_Sensor = (Fuel_Sensor_t *)data;
+    MeshProbe_struct *MeshProbe = (MeshProbe_struct *)data;
 
-    Serial.printf("#: %6i %13.8f [ml]\n", Fuel_Sensor->TelegramCounter , Fuel_Sensor->MilliLitters);
+    Serial.printf("from: %s %llu\n", MeshProbe->name, MeshProbe->TimeStamp);
 
-    SerialBT.printf("#: %6i %13.8f [ml]\n", Fuel_Sensor->TelegramCounter , Fuel_Sensor->MilliLitters);
+    SerialBT.printf("from: %s %llu\n", MeshProbe->name, MeshProbe->TimeStamp);
   }
 }
 void setup()
