@@ -36,9 +36,15 @@ BluetoothSerial SerialBT;
 
 #include "espNowFloodingMeshLibrary2/EspNowFloodingMesh.h"
 
-
+enum Sensor_ID
+{
+  SENSOR_FUEL = 12,
+  SENSOR_TACHOMETER,
+  SENSOR_GPS
+};
 struct Fuel_Sensor_t
 {
+  uint8_t SensorID;
   uint32_t TelegramCounter;  // internal counter - inc from start up
   uint16_t NoOfImpulses;     // sum of impulses are sent
   uint16_t SumOfImpulseTime; // sum of duration of sent impulses
@@ -57,27 +63,28 @@ bool blink = false;
 
 void espNowFloodingMeshRecv(const uint8_t *data, int len, uint32_t replyPrt)
 {
-
-  // Serial.print("<=== received Data :");
-  // Serial.println((const char *)data);
-  // SerialBT.print("<=== received Data :");
-  // SerialBT.println((const char *)data);
   if (len > 0)
   {
-    if (blink)
+    Serial.print("<=== received Data from Sensor ID:");
+
+    // first check incomming sensor ID
+    uint8_t *SensorID = (uint8_t *)data;
+    Serial.println(*SensorID);
+
+    // after identifing ID get the real data!
+    if (*SensorID == SENSOR_FUEL)
     {
-      M5.dis.drawpix(0, 0, 0x0000cc); // blue
+      Fuel_Sensor_t *Fuel_Sensor = (Fuel_Sensor_t *)data;
+
+      Serial.printf("#: %6i %13.8f [ml]\n", Fuel_Sensor->TelegramCounter, Fuel_Sensor->MilliLitters);
+      SerialBT.printf("#: %6i %13.8f [ml]\n", Fuel_Sensor->TelegramCounter, Fuel_Sensor->MilliLitters);
     }
     else
     {
-      M5.dis.drawpix(0, 0, 0x00ff00); // green
+      Serial.printf("unknown Sensor ID %i!\n", *SensorID);
     }
-    blink = !blink;
-    Fuel_Sensor_t *Fuel_Sensor = (Fuel_Sensor_t *)data;
 
-    Serial.printf("#: %6i %13.8f [ml]\n", Fuel_Sensor->TelegramCounter , Fuel_Sensor->MilliLitters);
 
-    SerialBT.printf("#: %6i %13.8f [ml]\n", Fuel_Sensor->TelegramCounter , Fuel_Sensor->MilliLitters);
   }
 }
 void setup()
@@ -139,7 +146,7 @@ void loop()
 {
   static unsigned long counter = 0;
   static unsigned long m = millis();
-  if (m + 2000 < millis())
+  if (m + 10000 < millis())
   {
 
     char Message[35]{};
@@ -157,11 +164,20 @@ void loop()
         } });
     m = millis();
     counter++;
+
+        // ######################
+    if (blink)
+    {
+      M5.dis.drawpix(0, 0, 0x0000cc); // blue
+    }
+    else
+    {
+      M5.dis.drawpix(0, 0, 0x00ff00); // green
+    }
+    blink = !blink;
   }
 
-
-
-M5.update();
+  M5.update();
   espNowFloodingMesh_loop();
   // delay(10);
 }
